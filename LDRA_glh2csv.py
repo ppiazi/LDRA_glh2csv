@@ -1,9 +1,11 @@
-# 2013-08-07
-# Soy
-# python LDRA_glh2csv.py Calendar.txt
+# 2013-08-07 Soy    Create - v0.1
+#                    ex) python LDRA_glh2csv.py Calendar.txt
+# 2013-08-09 ppiazi Modified - v0.2
+#                    ex) python LDRA_glh2csv.py Calendar.glh
 
 import sys # imports the sys module
 import csv # imports the csv module
+import os
 import datetime
 import time
 
@@ -16,14 +18,28 @@ def set_globvar(prefix):
     global g_prefix_file_name
     g_prefix_file_name = prefix
 
+def analyzeGlh(target_file):
+    if os.path.exists(target_file) != True:
+        print " %s doesn't exist." % (target_file)
+        return False
+
+    TBglhapi_cmd = "C:\LDRA_Toolsuite\TBglhapi.exe result=%s flags=2"
+    os.system(TBglhapi_cmd % (target_file) )
+    return True
 
 def loadFile(target_file):
     global g_prefix_file_name
-    fo = open(target_file, "r")
-    set_globvar(target_file.rstrip(".txt"))
-    startParse(fo)
-    fo.close()
-
+    target_txt_file = target_file.replace(".glh", ".txt")
+    try:
+        fo = open(target_txt_file, "r")
+        set_globvar(target_txt_file.rstrip(".txt"))
+        startParse(fo)
+        fo.close()
+        return True
+    except:
+        print " Check whether %s exists." % (target_file)
+        return False
+ 
 
 def startParse(fo):
     result_list = ["LDRA Rule Number", "Rule Description", "File", "Source Line Number"]
@@ -59,12 +75,25 @@ def writeFile(csv_list):
     outputfile.flush()   
     outputfile.close()
     
+def printUsage():
+    print " LDRA_glh2csv.exe [glh file name]"
+    print "   ex) LDRA_glh2csv.exe test.glh"
 
 if __name__ == "__main__":
-    print "Script for LDRA"
+    print "LDRA_glh2csv v0.2"
     if len(sys.argv) != 2:
-        print "Hahaha"
+        printUsage()
     else:
-        loadFile(sys.argv[1])
-    print "Bye"
+        print "1. Ivoking TBglhapi.exe..."
+        ret = analyzeGlh(sys.argv[1])
+        if ret == False:
+            sys.exit(-1)
+
+        print "\n2. Making CSV file..."
+        ret = loadFile(sys.argv[1])
+
+        if ret == True:
+            print " Done!"
+        else:
+            print " >.<"
     
