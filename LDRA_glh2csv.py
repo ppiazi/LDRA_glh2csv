@@ -1,10 +1,13 @@
 # 2013-08-07 Soy    Create - v0.1
 #                    ex) python LDRA_glh2csv.py Calendar.txt
-# 2013-08-09 ppiazi Modified - v0.2
-#                    ex) python LDRA_glh2csv.py Calendar.glh
+# 2013-08-09 ppiazi Modified - v0.3
+#                   - Get argument with -i and -e option
+#                    ex) python LDRA_glh2csv.py -i Calendar.glh
+
 
 import sys # imports the sys module
 import csv # imports the csv module
+import getopt
 import os
 import datetime
 import time
@@ -18,13 +21,17 @@ def set_globvar(prefix):
     global g_prefix_file_name
     g_prefix_file_name = prefix
 
-def analyzeGlh(target_file):
-    if os.path.exists(target_file) != True:
-        print " %s doesn't exist." % (target_file)
+def analyzeGlh(TBglhapi_path, target_file):
+    if os.path.exists(TBglhapi_path) != True:
+        print " TBglhapi.exe(%s) doesn't exist." % (TBglhapi_path)
         return False
 
-    TBglhapi_cmd = "C:\LDRA_Toolsuite\TBglhapi.exe result=%s flags=2"
-    os.system(TBglhapi_cmd % (target_file) )
+    if os.path.exists(target_file) != True:
+        print " GLH(%s) doesn't exist." % (target_file)
+        return False
+
+    TBglhapi_cmd = "%s result=%s flags=2"
+    os.system(TBglhapi_cmd % (TBglhapi_path, target_file) )
     return True
 
 def loadFile(target_file):
@@ -76,24 +83,53 @@ def writeFile(csv_list):
     outputfile.close()
     
 def printUsage():
-    print " LDRA_glh2csv.exe [glh file name]"
-    print "   ex) LDRA_glh2csv.exe test.glh"
+    print " LDRA_glh2csv.exe -i <Glh filename> -e <Location of TBglhapi.exe>"
+    print "   ex) LDRA_glh2csv.exe -i test.glh"
+    print "   ex) LDRA_glh2csv.exe -i test.glh -e C:\LDRA_Toolsuite\TBglhapi.exe"
 
 if __name__ == "__main__":
-    print "LDRA_glh2csv v0.2"
-    if len(sys.argv) != 2:
+    print "LDRA_glh2csv v0.3"
+
+    if len(sys.argv) == 1:
         printUsage()
-    else:
-        print "1. Ivoking TBglhapi.exe..."
-        ret = analyzeGlh(sys.argv[1])
-        if ret == False:
+        sys.exit(-1)
+
+    TBglhapi_path = "C:\LDRA_Toolsuite\TBglhapi.exe"
+    glh_file = ""
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hi:e:")
+    except getopt.GetoptError:
+        printUsage()
+        sys.exit(-1)
+
+    for opt, arg in opts:
+        #print opt + "  " + arg
+        if opt == '-h':
+            printUsage()
             sys.exit(-1)
+        elif opt in "-i":
+            glh_file = arg
+        elif opt in "-e":
+            TBglhapi_path = arg
 
-        print "\n2. Making CSV file..."
-        ret = loadFile(sys.argv[1])
+    if ( glh_file == "" ):
+        printUsage()
+        sys.exit(-1)
 
-        if ret == True:
-            print " Done!"
-        else:
-            print " >.<"
+    print "Target GLH FILE : %s" % (glh_file)
+    print "TBglhapi PATH   : %s" % (TBglhapi_path)
+    
+    print "1. Ivoking TBglhapi.exe..."
+    ret = analyzeGlh(TBglhapi_path, glh_file)
+    if ret == False:
+        sys.exit(-1)
+
+    print "\n2. Making CSV file..."
+    ret = loadFile(glh_file)
+
+    if ret == True:
+        print " Done!"
+    else:
+        print " >.<"
     
