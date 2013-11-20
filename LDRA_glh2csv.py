@@ -3,7 +3,8 @@
 # 2013-08-09 ppiazi Modified - v0.3
 #                   - Get argument with -i and -e option
 #                    ex) python LDRA_glh2csv.py -i Calendar.glh
-
+# 2013-11-20 ppiazi Modified - v0.4
+#                   - Save a csv file where LDRA_glh2csv.py is located
 
 import sys # imports the sys module
 import csv # imports the csv module
@@ -71,7 +72,10 @@ def startParse(fo):
 def writeFile(csv_list):
     a = datetime.datetime.now()
     loadtime = int(time.time())
-    CSV_FILE_NAME = g_prefix_file_name + '_' + str(loadtime) + '.csv'
+    
+    s = os.path.split(g_prefix_file_name)
+        
+    CSV_FILE_NAME = s[1] + '_' + str(loadtime) + '.csv'
     print a, CSV_FILE_NAME
     outputfile = open(CSV_FILE_NAME, "w")
     
@@ -88,7 +92,7 @@ def printUsage():
     print "   ex) LDRA_glh2csv.exe -i test.glh -e C:\LDRA_Toolsuite\TBglhapi.exe"
 
 if __name__ == "__main__":
-    print "LDRA_glh2csv v0.3"
+    print "LDRA_glh2csv v0.4"
 
     if len(sys.argv) == 1:
         printUsage()
